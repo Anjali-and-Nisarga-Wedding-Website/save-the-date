@@ -536,7 +536,7 @@
           <span class="year">2027</span>
         </div>
         <p class="location">Chattanooga · Tennessee</p>
-        <p class="rsvp"><a class="rsvp-link" href="#rsvp" id="rsvp-trigger" role="button" aria-haspopup="dialog">RSVP</a></p>
+        <p class="rsvp"><a class="rsvp-link" href="#rsvp" id="rsvp-trigger" role="button" aria-haspopup="dialog" aria-expanded="false">RSVP</a></p>
         <p class="footnote">Formal invitation to follow</p>
       </div>
     </article>
@@ -664,15 +664,35 @@
         'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
     }
 
+    // For a11y: stash the element that triggered the modal so we can
+    // restore focus to it on close.
+    var lastFocusedBeforeOpen = null;
+
+    // Return all currently focusable elements inside the modal, in DOM
+    // order. Used by the Tab focus-trap. Filters out hidden subtrees
+    // (display:none ancestors) so the trap doesn't try to focus the
+    // closed-form fields after a success state.
+    function focusableInModal() {
+      var nodes = modal.querySelectorAll(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+      return Array.prototype.filter.call(nodes, function (el) {
+        return el.offsetParent !== null && !el.disabled;
+      });
+    }
+
     function openModal(e) {
       if (e) e.preventDefault();
+      lastFocusedBeforeOpen = document.activeElement;
       modal.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
       document.body.style.overflow = 'hidden';
       // delay focus so the click event doesn't immediately blur
       setTimeout(function () { nameInput.focus(); }, 50);
     }
     function closeModal() {
       modal.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
       document.body.style.overflow = '';
       // Reset to fresh-form state so reopening after a success shows the form again.
       status.textContent = '';
@@ -683,6 +703,11 @@
       addCal.hidden = true;
       submit.disabled = false;
       submit.textContent = 'Send';
+      // Restore focus to whatever triggered the modal (typically the RSVP link).
+      if (lastFocusedBeforeOpen && typeof lastFocusedBeforeOpen.focus === 'function') {
+        lastFocusedBeforeOpen.focus();
+      }
+      lastFocusedBeforeOpen = null;
     }
 
     trigger.addEventListener('click', openModal);
@@ -691,7 +716,27 @@
       if (e.target === modal) closeModal();  // click on backdrop, not card
     });
     document.addEventListener('keydown', function (e) {
-      if (!modal.hidden && e.key === 'Escape') closeModal();
+      if (modal.hidden) return;
+      if (e.key === 'Escape') {
+        closeModal();
+        return;
+      }
+      if (e.key === 'Tab') {
+        // Focus trap: wrap from last → first and first → last so Tab
+        // can't escape to elements behind the overlay.
+        var focusables = focusableInModal();
+        if (focusables.length === 0) return;
+        var first = focusables[0];
+        var last  = focusables[focusables.length - 1];
+        var active = document.activeElement;
+        if (e.shiftKey && (active === first || !modal.contains(active))) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && (active === last || !modal.contains(active))) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
     });
 
     form.addEventListener('submit', function (e) {
