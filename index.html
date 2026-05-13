@@ -379,7 +379,9 @@
   .form-status.success {
     font-family: 'Pinyon Script', cursive;
     color: var(--gold);
-    font-size: 26px;
+    font-size: 52px;
+    line-height: 1;
+    margin-top: 16px;
   }
 
   .footnote {
@@ -454,8 +456,8 @@
   <div class="modal-overlay" id="rsvp-modal" role="dialog" aria-modal="true" aria-labelledby="rsvp-modal-title" hidden>
     <div class="modal-card">
       <button class="modal-close" id="rsvp-close" type="button" aria-label="Close">&times;</button>
-      <h2 class="modal-title" id="rsvp-modal-title">Yes!</h2>
-      <p class="modal-sub">A note for Anjali &amp; Nisarga</p>
+      <h2 class="modal-title" id="rsvp-modal-title">June 12th, 2027</h2>
+      <p class="modal-sub">Chattanooga, TN</p>
       <form id="rsvp-form" novalidate>
         <div class="form-field">
           <label for="rsvp-name">Name</label>
@@ -498,6 +500,8 @@
     var status  = document.getElementById('rsvp-status');
     var submit  = document.getElementById('rsvp-submit');
     var nameInput = document.getElementById('rsvp-name');
+    var titleEl = document.getElementById('rsvp-modal-title');
+    var subEl   = document.querySelector('.modal-sub');
 
     function openModal(e) {
       if (e) e.preventDefault();
@@ -509,8 +513,14 @@
     function closeModal() {
       modal.hidden = true;
       document.body.style.overflow = '';
+      // Reset to fresh-form state so reopening after a success shows the form again.
       status.textContent = '';
       status.className = 'form-status';
+      form.style.display = '';
+      titleEl.style.display = '';
+      subEl.style.display = '';
+      submit.disabled = false;
+      submit.textContent = 'Send';
     }
 
     trigger.addEventListener('click', openModal);
@@ -554,6 +564,9 @@
         return r.json();
       }).then(function (data) {
         if (data && data.result === 'success') {
+          // Replace the entire modal interior with a single "Thank you!"
+          titleEl.style.display = 'none';
+          subEl.style.display = 'none';
           form.style.display = 'none';
           status.textContent = 'Thank you!';
           status.className = 'form-status success';
