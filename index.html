@@ -343,19 +343,19 @@
     font-size: 18px;
     color: var(--ink-deep);
     background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--gold-line);
-    padding: 8px 0;
+    border: 1px solid var(--gold-line);
+    border-radius: 4px;
+    padding: 10px 12px;
     outline: none;
   }
   .form-field input:focus,
   .form-field select:focus,
   .form-field textarea:focus {
-    border-bottom-color: var(--gold);
+    border-color: var(--gold);
   }
   .form-field textarea {
     resize: vertical;
-    min-height: 60px;
+    min-height: 80px;
     font-family: 'Cormorant Garamond', serif;
   }
   .form-actions {
@@ -370,19 +370,22 @@
     text-transform: uppercase;
     color: var(--gold);
     background: transparent;
-    border: none;
-    border-bottom: 1px solid var(--gold-line);
-    padding: 6px 16px;
+    border: 1px solid var(--gold-line);
+    border-radius: 9999px;
+    padding: 12px 40px;
     cursor: pointer;
+    transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
   }
   .form-submit:hover, .form-submit:focus {
     color: var(--gold-soft);
-    border-bottom-color: var(--gold-soft);
+    border-color: var(--gold-soft);
+    background: rgba(176, 141, 74, 0.06);
     outline: none;
   }
   .form-submit[disabled] {
     color: var(--ink);
-    border-bottom-color: var(--ink);
+    border-color: var(--ink);
+    background: transparent;
     cursor: wait;
   }
   .form-status {
