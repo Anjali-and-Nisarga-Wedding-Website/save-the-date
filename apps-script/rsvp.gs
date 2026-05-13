@@ -90,25 +90,50 @@ function _appendRow_(row) {
 }
 
 // Mail failures must not roll back the row — by this point it's saved.
+// Sends TWO kinds of mail per submission:
+//   1. Alert to the couple (each TO_ADDRESS) — internal triage email.
+//   2. Confirmation to the submitter — warm acknowledgement that we got it.
 function _notify_(row) {
   const [timestamp, name, email, response, message] = row;
-  const subject = 'New Save-the-Date response from ' + name;
-  const body = [
+
+  // 1. Couple alert
+  const alertSubject = 'New Save-the-Date response from ' + name;
+  const alertBody = [
     'Name:           ' + name,
     'Email:          ' + email,
     'Response:       ' + (response || '(not specified)'),
     'Message:        ' + (message  || '(none)'),
     'Timestamp UTC:  ' + timestamp,
   ].join('\n');
-
   TO_ADDRESSES.forEach(function (addr) {
     if (!addr || addr.indexOf('[') === 0) return;  // skip unfilled tokens
     try {
-      MailApp.sendEmail(addr, subject, body);
+      MailApp.sendEmail(addr, alertSubject, alertBody);
     } catch (mailErr) {
-      console.error('MailApp.sendEmail failed for ' + addr + ':', mailErr);
+      console.error('Couple alert failed for ' + addr + ':', mailErr);
     }
   });
+
+  // 2. Submitter confirmation
+  const confirmSubject = 'Thanks for responding to our Save the Date — Anjali & Nisarga';
+  const confirmBody = [
+    'Hi ' + name + ',',
+    '',
+    "Thanks for letting us know you got our save the date! We've recorded your response:",
+    '',
+    '  Your response: ' + (response || '(no specific response chosen)'),
+    (message ? '  Your note:     ' + message + '\n' : ''),
+    'Save the date — June 12, 2027 in Chattanooga, TN.',
+    'Formal invitation to follow.',
+    '',
+    'With love,',
+    'Anjali & Nisarga',
+  ].join('\n');
+  try {
+    MailApp.sendEmail(email, confirmSubject, confirmBody);
+  } catch (mailErr) {
+    console.error('Submitter confirmation failed for ' + email + ':', mailErr);
+  }
 }
 
 function _json(obj) {
@@ -124,7 +149,7 @@ function testWriteRow() {
   const fakeEvent = { parameter: {
     name:     'TEST SUBMISSION — DELETE ME',
     email:    'test@example.com',
-    response: 'Hoping to attend!',
+    response: 'Planning to attend!',
     message:  'Smoke test from Apps Script editor',
   }};
   Logger.log(doPost(fakeEvent).getContent());
