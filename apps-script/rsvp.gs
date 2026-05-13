@@ -45,9 +45,12 @@ function doPost(e) {
     }
 
     const row = _buildRow_(params, name, email);
-    _appendRow_(row);
-    _notify_(row);
-    return _json({ result: 'success' });
+    const upsert = _upsertRow_(row);
+    _notify_(row, upsert);
+    return _json({
+      result: 'success',
+      isUpdate: !upsert.isNew,
+    });
 
   } catch (err) {
     console.error('doPost failed:', err);
@@ -75,51 +78,113 @@ function _buildRow_(p, name, email) {
   ];
 }
 
-// LockService serializes concurrent doPost calls so two submissions
-// at the same instant don't trample each other on appendRow.
-function _appendRow_(row) {
+// Upsert by email. If a row already exists with the same (trimmed,
+// lowercased) email, overwrite it in place — keeps one row per
+// submitter so guest counts don't double when someone resubmits a
+// month later because they forgot they already responded.
+// Position-in-sheet stays the same on update, so row order = order
+// of first contact.
+//
+// LockService serializes concurrent invocations so two submissions
+// at the same instant don't trample each other on the read-modify-
+// write.
+//
+// Returns:
+//   { isNew: true }                    — appended a new row
+//   { isNew: false, previous: row }    — updated an existing row;
+//                                        `previous` is the row's
+//                                        prior contents (for change
+//                                        detection in _notify_)
+function _upsertRow_(row) {
   const lock = LockService.getScriptLock();
   lock.waitLock(10000);
   try {
     const sheet = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
     if (!sheet) throw new Error('Sheet tab "' + SHEET_NAME + '" not found in spreadsheet ' + SHEET_ID);
+
+    const data = sheet.getDataRange().getValues();
+    const newEmail = String(row[2] || '').trim().toLowerCase();
+
+    // Scan all rows except the header (data[0]) for an existing
+    // submitter with the same email.
+    for (let i = 1; i < data.length; i++) {
+      const existingEmail = String(data[i][2] || '').trim().toLowerCase();
+      if (existingEmail && existingEmail === newEmail) {
+        // Sheet rows are 1-indexed; header is row 1, so data[i] sits
+        // at sheet row i + 1.
+        const sheetRowNumber = i + 1;
+        const previous = data[i];
+        sheet.getRange(sheetRowNumber, 1, 1, row.length).setValues([row]);
+        return { isNew: false, previous: previous };
+      }
+    }
+
+    // No match — append.
     sheet.appendRow(row);
+    return { isNew: true };
   } finally {
     lock.releaseLock();
   }
 }
 
 // Mail failures must not roll back the row — by this point it's saved.
-// Sends TWO kinds of mail per submission:
-//   1. Alert to the couple (each TO_ADDRESS) — internal triage email.
-//   2. Confirmation to the submitter — warm acknowledgement that we got it.
-function _notify_(row) {
+// Sends two kinds of mail per submission, with branching for the
+// upsert-detected-duplicate case:
+//   1. Couple alert: sent for NEW submissions and for UPDATES that
+//      actually changed response or message. Suppressed for "duplicate
+//      with no change" (the "they forgot they responded" case) to
+//      keep the couple's inbox sane.
+//   2. Submitter confirmation: always sent. Wording adjusts to
+//      acknowledge updates so resubmitters know the system saw their
+//      first attempt.
+function _notify_(row, upsert) {
   const [timestamp, name, email, response, message] = row;
+  const isUpdate = upsert && upsert.isNew === false;
+  const prev = isUpdate ? upsert.previous : null;
+  const prevResponse = prev ? String(prev[3] || '').trim() : '';
+  const prevMessage  = prev ? String(prev[4] || '').trim() : '';
+  const changed = isUpdate && (response !== prevResponse || message !== prevMessage);
 
-  // 1. Couple alert
-  const alertSubject = 'New Save-the-Date response from ' + name;
-  const alertBody = [
-    'Name:           ' + name,
-    'Email:          ' + email,
-    'Response:       ' + (response || '(not specified)'),
-    'Message:        ' + (message  || '(none)'),
-    'Timestamp UTC:  ' + timestamp,
-  ].join('\n');
-  TO_ADDRESSES.forEach(function (addr) {
-    if (!addr || addr.indexOf('[') === 0) return;  // skip unfilled tokens
-    try {
-      MailApp.sendEmail(addr, alertSubject, alertBody);
-    } catch (mailErr) {
-      console.error('Couple alert failed for ' + addr + ':', mailErr);
+  // 1. Couple alert — suppressed when an update doesn't actually change anything.
+  const shouldAlert = !isUpdate || changed;
+  if (shouldAlert) {
+    const alertSubject = (isUpdate ? '[Updated] ' : '') + 'New Save-the-Date response from ' + name;
+    const alertBodyLines = [
+      isUpdate ? '(UPDATE — same email previously responded.)' : '',
+      isUpdate ? '' : null,
+      'Name:           ' + name,
+      'Email:          ' + email,
+      'Response:       ' + (response || '(not specified)'),
+      'Message:        ' + (message  || '(none)'),
+      'Timestamp UTC:  ' + timestamp,
+    ];
+    if (isUpdate) {
+      alertBodyLines.push('', '--- Previous ---',
+        'Response:       ' + (prevResponse || '(not specified)'),
+        'Message:        ' + (prevMessage  || '(none)'));
     }
-  });
+    const alertBody = alertBodyLines.filter(s => s !== null).join('\n');
+    TO_ADDRESSES.forEach(function (addr) {
+      if (!addr || addr.indexOf('[') === 0) return;
+      try {
+        MailApp.sendEmail(addr, alertSubject, alertBody);
+      } catch (mailErr) {
+        console.error('Couple alert failed for ' + addr + ':', mailErr);
+      }
+    });
+  }
 
-  // 2. Submitter confirmation
-  const confirmSubject = 'Thanks for responding to our Save the Date — Anjali & Nisarga';
+  // 2. Submitter confirmation — always sent; wording varies on update.
+  const confirmSubject = isUpdate
+    ? "We've updated your Save-the-Date response — Anjali & Nisarga"
+    : "Thanks for responding to our Save the Date — Anjali & Nisarga";
+  const intro = isUpdate
+    ? "Thanks! We've updated your response. (Looks like you may have responded before — that's totally fine, we just kept the latest.)"
+    : "Thanks for letting us know you got our save the date! We've recorded your response:";
   const confirmBody = [
     'Hi ' + name + ',',
     '',
-    "Thanks for letting us know you got our save the date! We've recorded your response:",
+    intro,
     '',
     '  Your response: ' + (response || '(no specific response chosen)'),
     (message ? '  Your note:     ' + message + '\n' : ''),
