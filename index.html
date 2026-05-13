@@ -406,6 +406,41 @@
     margin-top: 16px;
   }
 
+  /* Add-to-calendar block — shown after a successful RSVP submission */
+  .add-to-cal {
+    margin-top: 28px;
+    text-align: center;
+  }
+  .add-cal-prompt {
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 14px;
+  }
+  .cal-links {
+    display: inline-flex;
+    gap: 18px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .cal-link {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold-line);
+    padding-bottom: 2px;
+    cursor: pointer;
+  }
+  .cal-link:hover, .cal-link:focus {
+    color: var(--gold-soft);
+    border-bottom-color: var(--gold-soft);
+    outline: none;
+  }
+
   .footnote {
     margin-top: 22px;
     font-family: 'Pinyon Script', cursive;
@@ -539,7 +574,7 @@
           <label for="rsvp-response">How are you feeling about this?</label>
           <select id="rsvp-response" name="response">
             <option value="">—</option>
-            <option value="Hoping to attend!">Hoping to attend!</option>
+            <option value="Planning to attend!">Planning to attend!</option>
             <option value="I'll try my best!">I'll try my best!</option>
             <option value="Probably can't make it">Probably can't make it</option>
             <option value="Don't know yet">Don't know yet</option>
@@ -554,6 +589,14 @@
         </div>
       </form>
       <div class="form-status" id="rsvp-status" role="status" aria-live="polite"></div>
+      <div class="add-to-cal" id="add-to-cal" hidden>
+        <p class="add-cal-prompt">Add to your calendar</p>
+        <div class="cal-links">
+          <a class="cal-link" id="cal-google"  target="_blank" rel="noopener">Google</a>
+          <a class="cal-link" id="cal-apple"   download="anjali-nisarga.ics">Apple</a>
+          <a class="cal-link" id="cal-outlook" target="_blank" rel="noopener">Outlook</a>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -570,6 +613,68 @@
     var nameInput = document.getElementById('rsvp-name');
     var titleEl = document.getElementById('rsvp-modal-title');
     var subEl   = document.querySelector('.modal-sub');
+    var addCal  = document.getElementById('add-to-cal');
+
+    // Event details for the add-to-calendar links.
+    var EVENT_TITLE       = 'Anjali & Nisarga — Wedding';
+    var EVENT_LOCATION    = 'Chattanooga, TN';
+    var EVENT_DESCRIPTION = 'Save the date. Formal invitation to follow.';
+    // All-day on June 12, 2027. iCalendar / Google use end-date EXCLUSIVE.
+    var EVENT_START_YMD = '20270612';
+    var EVENT_END_YMD   = '20270613';
+    var EVENT_START_ISO = '2027-06-12T00:00:00';
+    var EVENT_END_ISO   = '2027-06-13T00:00:00';
+
+    function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+    function utcStamp() {
+      var d = new Date();
+      return d.getUTCFullYear()
+        + pad2(d.getUTCMonth() + 1) + pad2(d.getUTCDate())
+        + 'T' + pad2(d.getUTCHours()) + pad2(d.getUTCMinutes()) + pad2(d.getUTCSeconds())
+        + 'Z';
+    }
+
+    function setCalendarLinks() {
+      // Google Calendar — event template URL.
+      document.getElementById('cal-google').href =
+        'https://calendar.google.com/calendar/render?action=TEMPLATE'
+        + '&text=' + encodeURIComponent(EVENT_TITLE)
+        + '&dates=' + EVENT_START_YMD + '/' + EVENT_END_YMD
+        + '&details=' + encodeURIComponent(EVENT_DESCRIPTION)
+        + '&location=' + encodeURIComponent(EVENT_LOCATION);
+
+      // Outlook.com / Microsoft 365 — deeplink compose URL.
+      document.getElementById('cal-outlook').href =
+        'https://outlook.live.com/calendar/0/deeplink/compose'
+        + '?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent'
+        + '&subject='  + encodeURIComponent(EVENT_TITLE)
+        + '&startdt='  + encodeURIComponent(EVENT_START_ISO)
+        + '&enddt='    + encodeURIComponent(EVENT_END_ISO)
+        + '&allday=true'
+        + '&body='     + encodeURIComponent(EVENT_DESCRIPTION)
+        + '&location=' + encodeURIComponent(EVENT_LOCATION);
+
+      // Apple Calendar — no URL scheme; serve an .ics as a data URL.
+      // iOS / macOS Safari prompts to add to Calendar on open.
+      var ics = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//Anjali and Nisarga//Save the Date//EN',
+        'CALSCALE:GREGORIAN',
+        'BEGIN:VEVENT',
+        'UID:save-the-date-20270612@anjali-and-nisarga.github.io',
+        'DTSTAMP:' + utcStamp(),
+        'DTSTART;VALUE=DATE:' + EVENT_START_YMD,
+        'DTEND;VALUE=DATE:'   + EVENT_END_YMD,
+        'SUMMARY:'     + EVENT_TITLE,
+        'LOCATION:'    + EVENT_LOCATION,
+        'DESCRIPTION:' + EVENT_DESCRIPTION,
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+      document.getElementById('cal-apple').href =
+        'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+    }
 
     function openModal(e) {
       if (e) e.preventDefault();
@@ -587,6 +692,7 @@
       form.style.display = '';
       titleEl.style.display = '';
       subEl.style.display = '';
+      addCal.hidden = true;
       submit.disabled = false;
       submit.textContent = 'Send';
     }
@@ -632,12 +738,14 @@
         return r.json();
       }).then(function (data) {
         if (data && data.result === 'success') {
-          // Replace the entire modal interior with a single "Thank you!"
+          // Replace the form with the success card: "Thank you!" + add-to-calendar links.
           titleEl.style.display = 'none';
           subEl.style.display = 'none';
           form.style.display = 'none';
           status.textContent = 'Thank you!';
           status.className = 'form-status success';
+          setCalendarLinks();
+          addCal.hidden = false;
         } else {
           status.textContent = (data && data.message)
             || "Sorry, something went wrong. Please try again or email us directly.";
