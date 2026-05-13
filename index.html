@@ -125,7 +125,7 @@
     margin: 0 0 36px;
     position: relative;
     flex-shrink: 0;
-    background: #c8ccc4;       /* gray placeholder until real portrait lands */
+    background: #c8ccc4;       /* fallback color if assets/couple.jpg fails to load */
     border-radius: 9999px;
   }
   .portrait::before {
@@ -447,16 +447,6 @@
     font-size: 34px;
     color: var(--gold);
     line-height: 1;
-  }
-
-  @media print {
-    @page { size: 5in 7in; margin: 0; }
-    body { background: white; }
-    .stage { padding: 0; min-height: auto; }
-    .card-wrapper { width: 5in; height: 7in; }
-    .card { box-shadow: none; transform: none; position: relative; width: 5in; height: 7in; }
-    .content { padding: 0.9in 1.5in; }
-    .modal-overlay { display: none !important; }
   }
 
   /* Mobile: turn the .rsvp-link into a pill button so the rendered
