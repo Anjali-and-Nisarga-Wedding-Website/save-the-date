@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Anjali &amp; Nisarga · Save the Date</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pinyon+Script&family=Cormorant+Garamond:wght@300;400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --bg-room: #ece9e2;
+    --card: #fbfaf6;
+    --ink: #5a6a55;
+    --ink-deep: #3f4a3b;
+    --gold: #b08d4a;
+    --gold-soft: #c9a965;
+    --gold-line: #b89859;
+  }
+
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg-room);
+    font-family: 'Cormorant Garamond', serif;
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  .stage {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+  }
+
+  .card {
+    position: relative;
+    width: 1000px;
+    height: 1400px;
+    background: var(--card);
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.04),
+      0 30px 80px -30px rgba(60, 70, 55, 0.35),
+      0 8px 24px -10px rgba(60, 70, 55, 0.15);
+    overflow: hidden;
+  }
+  .card::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse at 14% 50%, rgba(180,200,170,0.14), transparent 55%),
+      radial-gradient(ellipse at 86% 50%, rgba(180,200,170,0.14), transparent 55%);
+    pointer-events: none;
+  }
+
+  /* Frame */
+  .frame {
+    position: absolute;
+    inset: 90px 110px;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .frame svg { width: 100%; height: 100%; display: block; }
+
+  /* Corner plants */
+  .plant {
+    position: absolute;
+    width: 460px;
+    height: 460px;
+    z-index: 1;
+    pointer-events: none;
+    object-fit: contain;
+  }
+  .plant.tl {
+    top: -20px; left: -20px;
+    -webkit-mask: radial-gradient(circle at 25% 25%, #000 35%, transparent 70%);
+            mask: radial-gradient(circle at 25% 25%, #000 35%, transparent 70%);
+  }
+  .plant.br {
+    bottom: -20px; right: -20px;
+    transform: rotate(180deg);
+    -webkit-mask: radial-gradient(circle at 25% 25%, #000 35%, transparent 70%);
+            mask: radial-gradient(circle at 25% 25%, #000 35%, transparent 70%);
+  }
+
+  /* Content */
+  .content {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 130px 200px 160px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .portrait {
+    width: 320px;
+    height: 400px;
+    margin: 0 0 36px;
+    position: relative;
+    flex-shrink: 0;
+    background: #c8ccc4;       /* gray placeholder until real portrait lands */
+    border-radius: 9999px;
+  }
+  .portrait::before {
+    /* outer gold double-rule frame */
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border: 1px solid var(--gold-line);
+    border-radius: 9999px;
+    pointer-events: none;
+  }
+  .portrait::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border: 0.5px solid var(--gold-line);
+    border-radius: 9999px;
+    opacity: 0.55;
+    pointer-events: none;
+  }
+  .portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 28%;
+    border-radius: 9999px;
+    display: block;
+    filter: saturate(0.92) contrast(1.02);
+  }
+
+  .script {
+    font-family: 'Pinyon Script', cursive;
+    color: var(--gold);
+    font-size: 88px;
+    line-height: 1;
+    margin: 0;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+
+  .divider {
+    width: 180px;
+    height: 1px;
+    background: var(--gold-line);
+    opacity: 0.7;
+    margin: 28px auto 28px;
+    position: relative;
+  }
+  .divider::before, .divider::after {
+    content: "";
+    position: absolute; top: 50%;
+    width: 6px; height: 6px;
+    background: var(--gold);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .divider::before { left: -3px; }
+  .divider::after  { right: -3px; }
+
+  .names {
+    color: var(--ink-deep);
+    font-weight: 400;
+    font-size: 56px;
+    margin: 0;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    white-space: nowrap;
+  }
+  .names .name { letter-spacing: 0.18em; }
+  .names .amp {
+    font-family: 'Pinyon Script', cursive;
+    color: var(--gold);
+    font-size: 70px;
+    text-transform: none;
+    letter-spacing: 0;
+    line-height: 1;
+    font-weight: 400;
+    transform: translateY(-4px);
+    display: inline-block;
+  }
+
+  .date-row {
+    margin-top: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    color: var(--ink-deep);
+  }
+  .date-row .day, .date-row .year {
+    font-weight: 300;
+    font-size: 32px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+  }
+  .date-row .month {
+    font-weight: 400;
+    font-size: 46px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold);
+    border-left: 1px solid var(--gold-line);
+    border-right: 1px solid var(--gold-line);
+    padding: 0 22px;
+  }
+
+  .location {
+    margin-top: 40px;
+    font-size: 24px;
+    letter-spacing: 0.42em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+
+  .rsvp {
+    margin-top: 22px;
+    font-size: 22px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 0;
+  }
+  .rsvp-link {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid var(--gold-line);
+    padding-bottom: 2px;
+    letter-spacing: 0.22em;
+    cursor: pointer;
+  }
+  .rsvp-link:hover, .rsvp-link:focus {
+    color: var(--gold-soft);
+    border-bottom-color: var(--gold-soft);
+    outline: none;
+  }
+
+  /* RSVP modal — single-card aesthetic on a darkened backdrop */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(63, 74, 59, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    box-sizing: border-box;
+    z-index: 100;
+  }
+  .modal-overlay[hidden] { display: none; }
+  .modal-card {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    background: var(--card);
+    padding: 56px 64px 48px;
+    box-sizing: border-box;
+    box-shadow:
+      0 1px 0 rgba(0,0,0,0.04),
+      0 30px 80px -30px rgba(60, 70, 55, 0.55);
+    border: 1px solid var(--gold-line);
+  }
+  .modal-close {
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    width: 28px;
+    height: 28px;
+    background: none;
+    border: none;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--ink);
+    cursor: pointer;
+    padding: 0;
+  }
+  .modal-close:hover { color: var(--gold); }
+  .modal-title {
+    font-family: 'Pinyon Script', cursive;
+    color: var(--gold);
+    font-size: 52px;
+    line-height: 1;
+    margin: 0 0 8px;
+    text-align: center;
+    font-weight: 400;
+  }
+  .modal-sub {
+    text-align: center;
+    font-size: 16px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin: 0 0 32px;
+  }
+  .form-field {
+    margin-bottom: 20px;
+  }
+  .form-field label {
+    display: block;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .form-field input,
+  .form-field select,
+  .form-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    color: var(--ink-deep);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gold-line);
+    padding: 8px 0;
+    outline: none;
+  }
+  .form-field input:focus,
+  .form-field select:focus,
+  .form-field textarea:focus {
+    border-bottom-color: var(--gold);
+  }
+  .form-field textarea {
+    resize: vertical;
+    min-height: 60px;
+    font-family: 'Cormorant Garamond', serif;
+  }
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 28px;
+  }
+  .form-submit {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--gold-line);
+    padding: 6px 16px;
+    cursor: pointer;
+  }
+  .form-submit:hover, .form-submit:focus {
+    color: var(--gold-soft);
+    border-bottom-color: var(--gold-soft);
+    outline: none;
+  }
+  .form-submit[disabled] {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+    cursor: wait;
+  }
+  .form-status {
+    text-align: center;
+    margin-top: 20px;
+    min-height: 24px;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    color: var(--ink);
+  }
+  .form-status.error { color: #a05050; }
+  .form-status.success {
+    font-family: 'Pinyon Script', cursive;
+    color: var(--gold);
+    font-size: 26px;
+  }
+
+  .footnote {
+    margin-top: 22px;
+    font-family: 'Pinyon Script', cursive;
+    font-size: 34px;
+    color: var(--gold);
+    line-height: 1;
+  }
+
+  @media print {
+    @page { size: 5in 7in; margin: 0; }
+    body { background: white; }
+    .stage { padding: 0; min-height: auto; }
+    .card { box-shadow: none; width: 5in; height: 7in; }
+    .content { padding: 0.9in 1.5in; }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <article class="card" data-screen-label="Save the Date">
+
+      <!-- Corner eucalyptus -->
+      <img class="plant tl" src="plant-tl.png" alt="" aria-hidden="true" />
+      <img class="plant br" src="plant-br.png" alt="" aria-hidden="true" />
+
+      <!-- Frame -->
+      <div class="frame" aria-hidden="true">
+        <svg viewBox="0 0 780 1220" preserveAspectRatio="none" fill="none">
+          <defs>
+            <linearGradient id="goldFrame" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#d4b06a"/>
+              <stop offset="50%" stop-color="#b08d4a"/>
+              <stop offset="100%" stop-color="#c9a965"/>
+            </linearGradient>
+          </defs>
+          <g class="frame-geo">
+            <polygon points="120,30 660,30 750,140 750,1080 660,1190 120,1190 30,1080 30,140"
+                     stroke="url(#goldFrame)" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="portrait" aria-hidden="false">
+          <!-- Inline-SVG gray rectangle as portrait placeholder until real photo lands.
+               object-fit: cover + border-radius:9999px on the parent yields a gray pill. -->
+          <img src="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20viewBox%3D%270%200%20320%20400%27%3E%3Crect%20width%3D%27320%27%20height%3D%27400%27%20fill%3D%27%23c8ccc4%27/%3E%3C/svg%3E" alt="Anjali and Nisarga (portrait placeholder)" />
+        </div>
+        <h1 class="script">Save the Date</h1>
+        <div class="divider" aria-hidden="true"></div>
+        <h2 class="names">
+          <span class="name">Anjali</span>
+          <span class="amp">&amp;</span>
+          <span class="name">Nisarga</span>
+        </h2>
+        <div class="date-row">
+          <span class="day">12</span>
+          <span class="month">June</span>
+          <span class="year">2027</span>
+        </div>
+        <p class="location">Chattanooga · Tennessee</p>
+        <p class="rsvp"><a class="rsvp-link" href="#rsvp" id="rsvp-trigger" role="button" aria-haspopup="dialog">RSVP</a></p>
+        <p class="footnote">Formal invitation to follow</p>
+      </div>
+    </article>
+  </div>
+
+  <!-- RSVP modal — hidden by default, opened by #rsvp-trigger -->
+  <div class="modal-overlay" id="rsvp-modal" role="dialog" aria-modal="true" aria-labelledby="rsvp-modal-title" hidden>
+    <div class="modal-card">
+      <button class="modal-close" id="rsvp-close" type="button" aria-label="Close">&times;</button>
+      <h2 class="modal-title" id="rsvp-modal-title">Yes!</h2>
+      <p class="modal-sub">A note for Anjali &amp; Nisarga</p>
+      <form id="rsvp-form" novalidate>
+        <div class="form-field">
+          <label for="rsvp-name">Name</label>
+          <input id="rsvp-name" name="name" type="text" required autocomplete="name" />
+        </div>
+        <div class="form-field">
+          <label for="rsvp-email">Email</label>
+          <input id="rsvp-email" name="email" type="email" required autocomplete="email" />
+        </div>
+        <div class="form-field">
+          <label for="rsvp-response">How are you feeling about this?</label>
+          <select id="rsvp-response" name="response">
+            <option value="">—</option>
+            <option value="Hoping to attend!">Hoping to attend!</option>
+            <option value="I'll try my best!">I'll try my best!</option>
+            <option value="Probably can't make it">Probably can't make it</option>
+            <option value="Don't know yet">Don't know yet</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label for="rsvp-message">A short message (optional)</label>
+          <textarea id="rsvp-message" name="message" rows="3"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="form-submit" id="rsvp-submit" type="submit">Send</button>
+        </div>
+        <div class="form-status" id="rsvp-status" role="status" aria-live="polite"></div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+  (function () {
+    var APPS_SCRIPT_URL = '[APPS_SCRIPT_EXEC_URL]';  // wired in a later session
+
+    var trigger = document.getElementById('rsvp-trigger');
+    var modal   = document.getElementById('rsvp-modal');
+    var closeBtn = document.getElementById('rsvp-close');
+    var form    = document.getElementById('rsvp-form');
+    var status  = document.getElementById('rsvp-status');
+    var submit  = document.getElementById('rsvp-submit');
+    var nameInput = document.getElementById('rsvp-name');
+
+    function openModal(e) {
+      if (e) e.preventDefault();
+      modal.hidden = false;
+      document.body.style.overflow = 'hidden';
+      // delay focus so the click event doesn't immediately blur
+      setTimeout(function () { nameInput.focus(); }, 50);
+    }
+    function closeModal() {
+      modal.hidden = true;
+      document.body.style.overflow = '';
+      status.textContent = '';
+      status.className = 'form-status';
+    }
+
+    trigger.addEventListener('click', openModal);
+    closeBtn.addEventListener('click', closeModal);
+    modal.addEventListener('click', function (e) {
+      if (e.target === modal) closeModal();  // click on backdrop, not card
+    });
+    document.addEventListener('keydown', function (e) {
+      if (!modal.hidden && e.key === 'Escape') closeModal();
+    });
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var name = (form.name.value || '').trim();
+      var email = (form.email.value || '').trim();
+      if (!name || !email) {
+        status.textContent = "Please fill in your name and email.";
+        status.className = 'form-status error';
+        return;
+      }
+
+      submit.disabled = true;
+      submit.textContent = 'Sending…';
+      status.textContent = '';
+      status.className = 'form-status';
+
+      var body = new URLSearchParams({
+        name: name,
+        email: email,
+        response: form.response.value || '',
+        message: (form.message.value || '').trim(),
+      });
+
+      fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        body: body,
+        // Don't set Content-Type explicitly — URLSearchParams body
+        // sets application/x-www-form-urlencoded automatically, which
+        // is what Apps Script's doPost expects (e.parameter).
+      }).then(function (r) {
+        return r.json();
+      }).then(function (data) {
+        if (data && data.result === 'success') {
+          form.style.display = 'none';
+          status.textContent = 'Thank you!';
+          status.className = 'form-status success';
+        } else {
+          status.textContent = (data && data.message)
+            || "Sorry, something went wrong. Please try again or email us directly.";
+          status.className = 'form-status error';
+          submit.disabled = false;
+          submit.textContent = 'Send';
+        }
+      }).catch(function () {
+        status.textContent = "Sorry, something went wrong. Please try again or email us directly.";
+        status.className = 'form-status error';
+        submit.disabled = false;
+        submit.textContent = 'Send';
+      });
+    });
+  })();
+  </script>
+</body>
+</html>
