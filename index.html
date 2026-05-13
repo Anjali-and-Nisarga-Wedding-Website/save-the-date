@@ -343,15 +343,16 @@
     font-size: 18px;
     color: var(--ink-deep);
     background: transparent;
-    border: 1px solid var(--gold-line);
-    border-radius: 4px;
-    padding: 10px 12px;
+    border: none;
+    border-bottom: 1px solid var(--gold-line);
+    border-radius: 0;
+    padding: 8px 0;
     outline: none;
   }
   .form-field input:focus,
   .form-field select:focus,
   .form-field textarea:focus {
-    border-color: var(--gold);
+    border-bottom-color: var(--gold);
   }
   .form-field textarea {
     resize: vertical;
@@ -459,11 +460,6 @@
     }
     .modal-sub {
       margin-bottom: 24px;
-    }
-    .form-submit {
-      width: 100%;
-      padding: 14px 24px;
-      font-size: 17px;
     }
     .form-status.success {
       font-size: 40px;
